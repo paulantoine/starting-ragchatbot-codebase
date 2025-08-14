@@ -3,9 +3,10 @@ const API_URL = '/api';
 
 // Global state
 let currentSessionId = null;
+let currentAbortController = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
-    
+    newChatButton = document.getElementById('newChatButton');
+
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -28,8 +30,10 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
-    
+
+    // New chat button
+    newChatButton.addEventListener('click', startNewChat);
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -45,6 +49,14 @@ function setupEventListeners() {
 async function sendMessage() {
     const query = chatInput.value.trim();
     if (!query) return;
+
+    // Cancel any ongoing request
+    if (currentAbortController) {
+        currentAbortController.abort();
+    }
+
+    // Create new abort controller for this request
+    currentAbortController = new AbortController();
 
     // Disable input
     chatInput.value = '';
@@ -68,13 +80,14 @@ async function sendMessage() {
             body: JSON.stringify({
                 query: query,
                 session_id: currentSessionId
-            })
+            }),
+            signal: currentAbortController.signal
         });
 
         if (!response.ok) throw new Error('Query failed');
 
         const data = await response.json();
-        
+
         // Update session ID if new
         if (!currentSessionId) {
             currentSessionId = data.session_id;
@@ -85,10 +98,17 @@ async function sendMessage() {
         addMessage(data.answer, 'assistant', data.sources);
 
     } catch (error) {
-        // Replace loading message with error
-        loadingMessage.remove();
-        addMessage(`Error: ${error.message}`, 'assistant');
+        // Replace loading message with error (unless aborted)
+        if (error.name !== 'AbortError') {
+            loadingMessage.remove();
+            addMessage(`Error: ${error.message}`, 'assistant');
+        } else {
+            // Remove loading message if request was aborted
+            loadingMessage.remove();
+        }
     } finally {
+        // Clear the abort controller
+        currentAbortController = null;
         chatInput.disabled = false;
         sendButton.disabled = false;
         chatInput.focus();
@@ -115,12 +135,12 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}${isWelcome ? ' welcome-message' : ''}`;
     messageDiv.id = `message-${messageId}`;
-    
+
     // Convert markdown to HTML for assistant messages
     const displayContent = type === 'assistant' ? marked.parse(content) : escapeHtml(content);
-    
+
     let html = `<div class="message-content">${displayContent}</div>`;
-    
+
     if (sources && sources.length > 0) {
         // Handle both old string format and new structured format
         const sourceElements = sources.map((source, index) => {
@@ -138,7 +158,7 @@ function addMessage(content, type, sources = null, isWelcome = false) {
             } else {
                 sourceContent = `<span class="source-text">${source}</span>`;
             }
-            
+
             return `
                 <div class="source-item">
                     <div class="source-number">${index + 1}</div>
@@ -146,7 +166,7 @@ function addMessage(content, type, sources = null, isWelcome = false) {
                 </div>
             `;
         });
-        
+
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources (${sources.length})</summary>
@@ -156,11 +176,11 @@ function addMessage(content, type, sources = null, isWelcome = false) {
             </details>
         `;
     }
-    
+
     messageDiv.innerHTML = html;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     return messageId;
 }
 
@@ -179,21 +199,75 @@ async function createNewSession() {
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
 }
 
+async function startNewChat() {
+    try {
+        // Cancel any ongoing request
+        if (currentAbortController) {
+            currentAbortController.abort();
+            currentAbortController = null;
+        }
+
+        // Clear session on backend if we have a session ID
+        if (currentSessionId) {
+            try {
+                await fetch(`${API_URL}/sessions/clear`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId
+                    })
+                });
+            } catch (error) {
+                console.warn('Failed to clear session on backend:', error);
+                // Continue with frontend cleanup even if backend fails
+            }
+        }
+
+        // Reset frontend state
+        currentSessionId = null;
+        chatMessages.innerHTML = '';
+
+        // Clear any input
+        chatInput.value = '';
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+
+        // Add welcome message
+        addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+
+        // Focus on input
+        chatInput.focus();
+
+    } catch (error) {
+        console.error('Error starting new chat:', error);
+        // Still try to reset frontend state
+        currentSessionId = null;
+        chatMessages.innerHTML = '';
+        chatInput.value = '';
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+        addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+        chatInput.focus();
+    }
+}
+
 // Load course statistics
 async function loadCourseStats() {
     try {
         console.log('Loading course stats...');
         const response = await fetch(`${API_URL}/courses`);
         if (!response.ok) throw new Error('Failed to load course stats');
-        
+
         const data = await response.json();
         console.log('Course data received:', data);
-        
+
         // Update stats in UI
         if (totalCourses) {
             totalCourses.textContent = data.total_courses;
         }
-        
+
         // Update course titles
         if (courseTitles) {
             if (data.course_titles && data.course_titles.length > 0) {
@@ -204,7 +278,7 @@ async function loadCourseStats() {
                 courseTitles.innerHTML = '<span class="no-courses">No courses available</span>';
             }
         }
-        
+
     } catch (error) {
         console.error('Error loading course stats:', error);
         // Set default values on error
