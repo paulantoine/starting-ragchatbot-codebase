@@ -123,25 +123,36 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     
     if (sources && sources.length > 0) {
         // Handle both old string format and new structured format
-        const sourceElements = sources.map(source => {
+        const sourceElements = sources.map((source, index) => {
+            let sourceContent = '';
             if (typeof source === 'string') {
                 // Legacy string format
-                return `<span class="source-item">${source}</span>`;
+                sourceContent = `<span class="source-text">${source}</span>`;
             } else if (source && typeof source === 'object') {
                 // New structured format with optional links
                 if (source.link) {
-                    return `<a href="${source.link}" target="_blank" class="source-item clickable-source">${source.text}</a>`;
+                    sourceContent = `<a href="${source.link}" target="_blank" class="source-text clickable-source">${source.text}</a>`;
                 } else {
-                    return `<span class="source-item">${source.text}</span>`;
+                    sourceContent = `<span class="source-text">${source.text}</span>`;
                 }
+            } else {
+                sourceContent = `<span class="source-text">${source}</span>`;
             }
-            return `<span class="source-item">${source}</span>`;
+            
+            return `
+                <div class="source-item">
+                    <div class="source-number">${index + 1}</div>
+                    ${sourceContent}
+                </div>
+            `;
         });
         
         html += `
             <details class="sources-collapsible">
-                <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sourceElements.join(', ')}</div>
+                <summary class="sources-header">Sources (${sources.length})</summary>
+                <div class="sources-content">
+                    ${sourceElements.join('')}
+                </div>
             </details>
         `;
     }
