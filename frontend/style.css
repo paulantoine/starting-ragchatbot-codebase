@@ -245,6 +245,25 @@ header h1 {
     color: var(--text-secondary);
 }
 
+/* Source item styling */
+.source-item {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Clickable source styling */
+.clickable-source {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.clickable-source:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
 /* Markdown formatting styles */
 .message-content h1,
 .message-content h2,
