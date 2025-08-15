@@ -7,42 +7,42 @@
     padding: 0;
 }
 
-/* CSS Variables - Dark Theme (Default) */
+/* CSS Variables - Dark Theme (Default) - Pink Theme */
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --background: #0f172a;
-    --surface: #1e293b;
-    --surface-hover: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --border-color: #334155;
-    --user-message: #2563eb;
-    --assistant-message: #374151;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --primary-color: #ec4899;
+    --primary-hover: #db2777;
+    --background: #1f0a16;
+    --surface: #2d1324;
+    --surface-hover: #3d1a2e;
+    --text-primary: #fdf2f8;
+    --text-secondary: #f9a8d4;
+    --border-color: #3d1a2e;
+    --user-message: #ec4899;
+    --assistant-message: #2d1324;
+    --shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.3);
     --radius: 12px;
-    --focus-ring: rgba(37, 99, 235, 0.2);
-    --welcome-bg: #1e3a5f;
-    --welcome-border: #2563eb;
+    --focus-ring: rgba(236, 72, 153, 0.2);
+    --welcome-bg: #3d1a2e;
+    --welcome-border: #ec4899;
 }
 
-/* Light Theme Variables */
+/* Light Theme Variables - Pink Theme */
 body.light-theme {
-    --primary-color: #1d4ed8;
-    --primary-hover: #1e40af;
-    --background: #ffffff;
-    --surface: #f8fafc;
-    --surface-hover: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --border-color: #cbd5e1;
-    --user-message: #1d4ed8;
-    --assistant-message: #f1f5f9;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --primary-color: #db2777;
+    --primary-hover: #be185d;
+    --background: #fefcfd;
+    --surface: #fdf2f8;
+    --surface-hover: #fce7f3;
+    --text-primary: #1f0a16;
+    --text-secondary: #831843;
+    --border-color: #f3e8ff;
+    --user-message: #db2777;
+    --assistant-message: #fdf2f8;
+    --shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.1);
     --radius: 12px;
-    --focus-ring: rgba(29, 78, 216, 0.3);
-    --welcome-bg: #dbeafe;
-    --welcome-border: #1d4ed8;
+    --focus-ring: rgba(219, 39, 119, 0.3);
+    --welcome-bg: #fce7f3;
+    --welcome-border: #db2777;
 }
 
 /* Base Styles */
@@ -99,7 +99,7 @@ header {
 header h1 {
     font-size: 1.75rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -133,7 +133,7 @@ header h1 {
     background: var(--surface-hover);
     border-color: var(--primary-color);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
 }
 
 .theme-toggle:focus {
@@ -580,7 +580,7 @@ body.light-theme .theme-toggle .moon-icon {
 #sendButton:hover:not(:disabled) {
     background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
 }
 
 #sendButton:active:not(:disabled) {
